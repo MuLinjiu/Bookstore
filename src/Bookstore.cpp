@@ -18,3 +18,7 @@ Book::Book(double _price, int _quantity, const string &ISBN_, const string &_nam
 void Book::show() const {
     cout<<ISBN<<" "<<name<<" "<<author<<" "<<key_word<<" "<<setprecision(2)<<price<<" "<<quantity<<endl;
 }
+
+void initialize(){
+
+}

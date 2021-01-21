@@ -26,9 +26,9 @@ public:
 
 class square{
 public:
-    int next;
-    int previous;
-    int length;
+    int next = -1;
+    int previous = -1;
+    int length = 0;
     node nodearray[square_size];
     square();
 };

@@ -10,54 +10,67 @@
 #include<stack>
 #include<nodelist.h>
 
+#define USER_ID_LIST_FILE "user_id.dat"
+nodelist USER_ID_LIST(USER_ID_LIST_FILE);
+#define ISBN_FILE "isbn.dat"
+nodelist ISBN_LIST(ISBN_FILE);
+#define AUTHOR_FILE "author.dat"
+nodelist AUTHOR_LIST(AUTHOR_FILE);
+#define NAME_FILE "name.dat"
+nodelist NAME_LIST(NAME_FILE);
+#define KEYWORD_FILE "keyword.dat"
+nodelist KEYWORD_LIST(KEYWORD_FILE);
 
 using namespace std;
-class user;
-enum jobtype{BOSS,CUSTOMER,STAFF};
 class user{
 public:
     int priority = -1;
     char user_id[31];
     char password[31];
     char name[31];
-    bool if_login = false;
-    user() {};
-    virtual jobtype gettype() = 0;
+    int select = -1;
+    user(){};
+    user(const string&user_id,const string &pass,const string &name, int pri);
 };
 
-class customer:public user{
-    customer(char id[],char pass[],char name1[]):user(){
-        priority = 1;
-        strcpy(user_id,id);
-        strcpy(password,pass);
-        strcpy(name,name1);
-    }
-    jobtype gettype()override{
-        return(CUSTOMER);
-    }
-};
+void login(const string &user_id_,string password = "");
 
-class staff:public user{
-    staff(char id[],char pass[],char name1[]):user(){
-        priority = 3;
-        strcpy(user_id,id);
-        strcpy(password,pass);
-        strcpy(name,name1);
-    }
-    jobtype gettype()override{
-        return(STAFF);
-    }
-};
 
-class root:public user{
-    root():user(){
-        priority = 7;
-        strcpy(user_id,"root");
-        strcpy(password,"sjtu");
+void logout();
+
+
+void register_(user &U);
+void addacount(user &a);
+
+void deleteaccount(const char* userid);
+
+void changepassword(const char* user_id,const char * newpas,const char* oldpas = "");
+
+template <class T>
+T my_read(string  filename,int offset){
+    fstream fin;
+    fin.open(filename,ios::in|ios::binary);
+    if(!fin)throw("error");
+    T tmp;
+    fin.seekg(offset);
+    fin.read(reinterpret_cast<char*>(&tmp),sizeof(T));
+    fin.close();
+    return tmp;
+}
+
+template <class T>
+int my_write(string filename,T &o,int offset = -1){
+    fstream fin;
+    fin.open(filename,ios::in | ios::binary | ios::out);
+    if(!fin)throw("cannot open the file(my_write)");
+    if(offset < 0){
+        fin.seekg(0,ios::end);
+        offset = fin.tellg();
+    }else{
+        fin.seekg(offset);
     }
-    jobtype gettype()override{
-        return(BOSS);
-    }
-};
-void login(string &user_id_,string password = "");
+    fin.write(reinterpret_cast<char *>(&o),sizeof(T));
+    fin.close();
+    return offset;
+}
 #endif //NODELIST_CPP_CAMMAND_USER_H

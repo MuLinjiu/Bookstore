@@ -4,7 +4,6 @@
 
 #include "nodelist.h"
 
-#include <nodelist.h>
 
 node::node(const node &a) {
     offset = a.offset;
