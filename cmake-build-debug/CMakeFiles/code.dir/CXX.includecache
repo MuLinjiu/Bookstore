@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../src/nodelist.h
+iostream
+-
+cstring
+-
+fstream
+-
+
+D:/HXL/FIRST(2)/Bookstore/Bookstore-2021-main/src/Bookstore.cpp
+Bookstore.h
+D:/HXL/FIRST(2)/Bookstore/Bookstore-2021-main/src/Bookstore.h
+iomanip
+-
+
+D:/HXL/FIRST(2)/Bookstore/Bookstore-2021-main/src/Bookstore.h
+iostream
+-
+cstring
+-
+vector
+-
+stack
+-
+nodelist.h
+-
+

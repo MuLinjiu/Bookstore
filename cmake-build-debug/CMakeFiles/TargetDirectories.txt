@@ -1,0 +1,3 @@
+D:/HXL/FIRST(2)/Bookstore/Bookstore-2021-main/cmake-build-debug/CMakeFiles/code.dir
+D:/HXL/FIRST(2)/Bookstore/Bookstore-2021-main/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/HXL/FIRST(2)/Bookstore/Bookstore-2021-main/cmake-build-debug/CMakeFiles/rebuild_cache.dir
