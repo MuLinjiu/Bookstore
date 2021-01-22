@@ -4,6 +4,9 @@
 
 #include "Bookstore.h"
 #include <iomanip>
+
+extern nodelist USER_ID_LIST;
+
 using namespace std;
 Book::Book() {}
 Book::Book(double _price, int _quantity, const string &ISBN_, const string &_name, const string &_author,
@@ -15,6 +18,13 @@ Book::Book(double _price, int _quantity, const string &ISBN_, const string &_nam
     strcpy(key_word,_keyword.c_str());
     quantity = _quantity;
 }
+
+bool Book::operator<(Book &a) {
+    return ((*this).ISBN < a.ISBN);
+}
+
+
+
 void Book::show() const {
     cout<<ISBN<<" "<<name<<" "<<author<<" "<<key_word<<" "<<setprecision(2)<<price<<" "<<quantity<<endl;
 }

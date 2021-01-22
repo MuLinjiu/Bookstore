@@ -5,6 +5,14 @@
 #include "Cammand(user).h"
 #include "Bookstore.h"
 #include <iomanip>
+#include <algorithm>
+#include <string.h>
+nodelist KEYWORD_LIST(KEYWORD_FILE);
+nodelist USER_ID_LIST(USER_ID_LIST_FILE);
+nodelist ISBN_LIST(ISBN_FILE);
+nodelist AUTHOR_LIST(AUTHOR_FILE);
+nodelist NAME_LIST(NAME_FILE);
+
 user::user(const string &user_id_, const string &pass, const string &name_, int pri) {
     strcpy(user_id,user_id_.c_str());
     strcpy(password,pass.c_str());
@@ -203,6 +211,157 @@ void showfinancetime(int times){
     fin.close();
 }
 
+void show(const string &key,nodelist &a){
+    vector<int>possibleoffset;
+    a.findnode(key,possibleoffset);
+    if(possibleoffset.empty())throw"error";
+    vector<Book>bookstack;
+    int i = 0;
+    fstream fin(BOOK_FILE,ios::in | ios :: out | ios ::binary);
+    while(i < possibleoffset.size()){
+        if(!fin)throw("error");
+        fin.seekg(possibleoffset[i]);
+        Book tmp;
+        fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
+        bookstack.push_back(tmp);
+    }
+    fin.close();
+    sort(bookstack.begin(),bookstack.end());
+    for(auto & it : bookstack){
+        it.show();
+    }
+}
+
+
+void show(){
+    fstream fin(BOOK_FILE,ios::in | ios :: out | ios ::binary);
+    fin.seekg(0,ios::end);
+    int offsetmax = fin.tellg();
+    vector<Book>bookstack;
+    int cur = 0;
+    while(cur <= offsetmax){
+        Book tmp;
+        fin.seekg(cur);
+        fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
+        bookstack.push_back(tmp);
+        cur += sizeof(Book);
+    }
+    sort(bookstack.begin(),bookstack.end());
+    for(auto & i : bookstack){
+        i.show();
+    }
+    fin.close();
+}
+
+void modifyISBN(const string &key){
+//    vector<int>possibleoffset;
+//    a.findnode(key,possibleoffset);
+//    if(possibleoffset.empty())throw"error";
+    int offset = USERONLINE.top().select;
+    fstream fin(BOOK_FILE,ios::in | ios :: out | ios ::binary);
+    fin.seekg(offset);
+    Book tmp;
+    fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
+    vector<int>possibleoffset;
+    ISBN_LIST.findnode(tmp.ISBN,possibleoffset);
+    if(possibleoffset.empty()) {
+        node x(offset,key);
+        ISBN_LIST.addnode(x);
+    }
+    strcpy(tmp.ISBN,key.c_str());
+    fin.seekp(offset);
+    fin.write(reinterpret_cast<char*>(&tmp),sizeof(Book));
+    fin.close();
+}
+
+
+
+
+void modifyNAME(const string &key){
+    int offset = USERONLINE.top().select;
+    fstream fin(BOOK_FILE,ios::in | ios :: out | ios ::binary);
+    fin.seekg(offset);
+    Book tmp;
+    fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
+    vector<int>possibleoffset;
+   NAME_LIST.findnode(tmp.name,possibleoffset);
+    if(possibleoffset.empty()) {
+        node x(offset,key);
+        NAME_LIST.addnode(x);
+    }
+    strcpy(tmp.name,key.c_str());
+    fin.seekp(offset);
+    fin.write(reinterpret_cast<char*>(&tmp),sizeof(Book));
+    fin.close();
+}
+
+
+
+void modifyAUTHOR(const string &key){
+    int offset = USERONLINE.top().select;
+    fstream fin(BOOK_FILE,ios::in | ios :: out | ios ::binary);
+    fin.seekg(offset);
+    Book tmp;
+    fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
+    vector<int>possibleoffset;
+    AUTHOR_LIST.findnode(tmp.author,possibleoffset);
+    if(possibleoffset.empty()) {
+        node x(offset,key);
+        AUTHOR_LIST.addnode(x);
+    }
+    strcpy(tmp.author,key.c_str());
+    fin.seekp(offset);
+    fin.write(reinterpret_cast<char*>(&tmp),sizeof(Book));
+    fin.close();
+}
+
+
+
+
+void modifyKEYWORD(const string &key){
+    int offset = USERONLINE.top().select;
+    fstream fin(BOOK_FILE,ios::in | ios :: out | ios ::binary);
+    fin.seekg(offset);
+    Book tmp;
+    fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
+    vector<int>possibleoffset;
+    KEYWORD_LIST.findnode(tmp.key_word,possibleoffset);
+    if(possibleoffset.empty()) {
+        node x(offset,key);
+        KEYWORD_LIST.addnode(x);
+    }
+    strcpy(tmp.key_word,key.c_str());
+    fin.seekp(offset);
+    fin.write(reinterpret_cast<char*>(&tmp),sizeof(Book));
+    fin.close();
+}
+
+
+
+
+void modifyPRICEC(double price){
+    int offset = USERONLINE.top().select;
+    fstream fin(BOOK_FILE,ios::in | ios :: out | ios ::binary);
+    fin.seekg(offset);
+    Book tmp;
+    fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
+    tmp.price = price;
+    fin.seekp(offset);
+    fin.write(reinterpret_cast<char*>(&tmp),sizeof(Book));
+    fin.close();
+}
+
+
+
+
+
+
+
+
+
+
+
+
 void Run_Program(string &a){
     int len = a.length();
     string type;
@@ -304,20 +463,79 @@ void Run_Program(string &a){
         } else throw("error");
     }
     else if(type == "modify"){
-
+        while(i < len){
+            string command;
+            for (++i; a[i] != ' '; ++i) command += a[i];
+            switch (command[1]) {
+                case 'I':{
+                    command.substr(7);
+                    modifyISBN(command);
+                    break;
+                }
+                case 'n':{
+                    command.substr(7);
+                    modifyNAME(command);
+                    break;
+                }
+                case 'a':{
+                    command.substr(9);
+                    modifyAUTHOR(command);
+                    break;
+                }
+                case 'k':{
+                    command.substr(10);
+                    modifyKEYWORD(command);
+                    break;
+                }
+                case 'p':{
+                    command.substr(8);
+                    stringstream str;
+                    str<<command;
+                    double price;
+                    str>>price;
+                    modifyPRICEC(price);
+                    break;
+                }
+                default:throw("error");
+            }
+        }
     }
     else if(type == "show"){
-        if(i >= len || a[i + 1] == '-'){
+        if(i >= len || a[i + 1] == '-') {
             string command;
-            for(++i; i < len ; i++){
+            for (++i; i < len; i++) {
                 command += a[i];
             }
             //show操作
-
-
-
-
-
+            if (USERONLINE.top().priority >= 1) {
+                if (command.empty())show();
+                else {
+                    switch (command[1]) {
+                        case 'I': {
+                            command.substr(7);
+                            show(command, ISBN_LIST);
+                            return;
+                        }
+                        case 'n': {
+                            command.substr(7);
+                            show(command, NAME_LIST);
+                            return;
+                        }
+                        case 'a': {
+                            command.substr(9);
+                            show(command, AUTHOR_LIST);
+                            return;
+                        }
+                        case 'k': {
+                            command.substr(10);
+                            show(command, KEYWORD_LIST);
+                            return;
+                        }
+                        default:
+                            throw ("error");
+                    }
+                }
+            }
         }else{
             string type2;
             for (++i; i < len && a[i] != ' '; ++i) type2 += a[i];

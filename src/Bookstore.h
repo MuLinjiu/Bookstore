@@ -8,8 +8,9 @@
 #include <cstring>
 #include <vector>
 #include<stack>
-#include<nodelist.h>
 #include "Cammand(user).h"
+
+
 
 using namespace std;
 
@@ -23,7 +24,7 @@ public:
     char author[60] = {0};
     Book();
     Book(double _price, int _quantity, const string &ISBN_, const string &_name, const string &_author, const string &_keyword);
-
+    bool operator < (Book &a);
     void show() const;
 };
 

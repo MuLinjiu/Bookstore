@@ -8,24 +8,24 @@
 #include <cstring>
 #include <vector>
 #include<stack>
-#include<nodelist.h>
+#include"nodelist.h"
 
 #define TOTLEMONEY_FILE "totalmoney.dat"
 #define TRANSACTION_FILE "transaction.dat"//记录每一笔交易
 #define BOOK_FILE "book_file.dat"//记录书的文件
 #define USER "user.dat"
 #define USER_ID_LIST_FILE "user_id.dat"
-nodelist USER_ID_LIST(USER_ID_LIST_FILE);
-#define ISBN_FILE "isbn.dat"
-nodelist ISBN_LIST(ISBN_FILE);
-#define AUTHOR_FILE "author.dat"
-nodelist AUTHOR_LIST(AUTHOR_FILE);
-#define NAME_FILE "name.dat"
-nodelist NAME_LIST(NAME_FILE);
-#define KEYWORD_FILE "keyword.dat"
-nodelist KEYWORD_LIST(KEYWORD_FILE);
 
-enum type{ISBN,NAME,AUTHOR,KEYWORD,PRICE};
+#define ISBN_FILE "isbn.dat"
+
+#define AUTHOR_FILE "author.dat"
+
+#define NAME_FILE "name.dat"
+
+#define KEYWORD_FILE "keyword.dat"
+
+
+//enum type{ISBN,NAME,AUTHOR,KEYWORD,PRICE};
 
 using namespace std;
 class user{
@@ -66,6 +66,35 @@ void showfinance();
 
 
 void showfinancetime(int times);
+
+
+void show();
+
+
+
+void show(const string &key,nodelist &a);
+
+
+void modifyISBN(const string &key);
+
+
+
+void modifyNAME(const string &key);
+
+
+
+void modifyAUTHOR(const string &key);
+
+
+
+
+void modifyKEYWORD(const string &key);
+
+
+
+
+void modifyPRICEC(double price);
+
 
 void Run_Program(string &a);
 
