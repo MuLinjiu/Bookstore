@@ -19,6 +19,16 @@ void Book::show() const {
     cout<<ISBN<<" "<<name<<" "<<author<<" "<<key_word<<" "<<setprecision(2)<<price<<" "<<quantity<<endl;
 }
 
-void initialize(){
+transaction::transaction() = default;
 
+transaction::transaction(const string & ISBN_,const string & user_id_,int quant, double price){
+    strcpy(ISBN,ISBN_.c_str());
+    strcpy(user_id,user_id_.c_str());
+    quantity = quant;
+    totalprice = price;
+}
+
+totlemoney::totlemoney() = default;
+void initialize(){
+//注意初始化totlemoney进入文件
 }

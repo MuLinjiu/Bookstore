@@ -12,10 +12,10 @@ node::node(const node &a) {
 }
 
 
-node::node(int offset_, const char* key_) {
+node::node(int offset_, const string& key_) {
     offset = offset_;
     memset(key,0,sizeof(key));
-    strcpy(key,key_);
+    strcpy(key,key_.c_str());
 }
 
 

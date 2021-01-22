@@ -3,7 +3,8 @@
 //
 
 #include "Cammand(user).h"
-
+#include "Bookstore.h"
+#include <iomanip>
 user::user(const string &user_id_, const string &pass, const string &name_, int pri) {
     strcpy(user_id,user_id_.c_str());
     strcpy(password,pass.c_str());
@@ -76,4 +77,132 @@ void changepassword(const char* user_id,const char * newpas,const char* oldpas )
     }
     strcpy(tmp.password,newpas);
     my_write<user>(USER_ID_LIST_FILE,tmp,possibleoffset[0]);
+}
+
+void selectbook(const string & ISBN_){
+    if(USERONLINE.empty())throw("select failed");
+    else {
+        if (USERONLINE.top().priority >= 3) {
+            vector<int> possibleoffset;
+            ISBN_LIST.findnode(ISBN_, possibleoffset);
+            if (possibleoffset.empty()) {
+                Book tmp(0, 0, ISBN_, "", "", "");
+                fstream fin;
+                fin.open(BOOK_FILE,ios::in | ios::out | ios::binary);
+                if (!fin)throw ("error");
+                fin.seekp(0, ios::end);
+                int offset = fin.tellg();
+                fin.write(reinterpret_cast<char *>(&tmp), sizeof(Book));
+                USERONLINE.top().select = offset;
+                node tmp1(offset, ISBN_);
+                ISBN_LIST.addnode(tmp1);
+            } else {
+                USERONLINE.top().select = possibleoffset[0];
+            }
+        }
+        else throw("inadequate pri");
+    }
+}
+
+void import(int quantity_, int totleprice ){
+    if(USERONLINE.top().priority >= 3){
+        int offset = USERONLINE.top().select;
+        if(offset == -1)throw("error");
+        fstream fin,fout;
+        fin.open(BOOK_FILE,ios::in | ios::out | ios::binary);
+        if(!fin)throw("import");
+        fin.seekg(offset);
+        Book tmp;
+        fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
+        tmp.quantity += quantity_;
+        fin.seekp(offset);
+        fin.write(reinterpret_cast<char*>(&tmp),sizeof(Book));//书的数量更新；
+        fin.close();
+        transaction tmp1(tmp.ISBN,USERONLINE.top().user_id,quantity_,-totleprice);
+        fin.open(TRANSACTION_FILE,ios::in | ios::out | ios::binary);
+        if(!fin)throw("import2");
+        fin.seekp(0,ios::end);
+        fin.write(reinterpret_cast<char *>(&tmp1),sizeof(transaction));//更新一笔交易
+        fin.close();
+        fout.open(TOTLEMONEY_FILE,ios::in | ios::out | ios::binary);
+        if(!fout)throw("import3");
+        fout.seekg(0);
+        totlemoney tmp2;
+        fout.read(reinterpret_cast<char*>(&tmp2),sizeof(totlemoney));
+        tmp2.expense -= totleprice;
+        fout.seekp(0);
+        fout.write(reinterpret_cast<char*>(&tmp2),sizeof(totlemoney));//更新总支出
+        fout.close();
+    }
+    else throw("error");
+}
+
+
+void buy(const string &ISBN_,int quantity_){
+    vector<int>possibleoffset;
+    ISBN_LIST.findnode(ISBN_,possibleoffset);
+    if(possibleoffset.empty())throw("buy1");
+    int offset = possibleoffset[0];
+    Book tmpbook;
+    fstream fin,fout;
+    fin.open(BOOK_FILE,ios::in | ios::out | ios::binary);
+    if(!fin)throw("buy2");
+    fin.seekg(offset);
+    fin.read(reinterpret_cast<char *>(&tmpbook),sizeof(Book));
+    if(tmpbook.quantity < quantity_)throw("buy3");
+    tmpbook.quantity -= quantity_;
+    fin.seekp(offset);
+    fin.write(reinterpret_cast<char*>(&tmpbook),sizeof(Book));//更新书的数量
+    fin.close();
+    transaction tmp(ISBN_,USERONLINE.top().user_id,quantity_,quantity_ * tmpbook.price);
+    fin.open(TRANSACTION_FILE,ios::in | ios::out | ios::binary);
+    if(!fin)throw("buy4");
+    fin.seekp(0,ios::end);
+    fin.write(reinterpret_cast<char *>(&tmp),sizeof(transaction));//更新一笔交易
+    fin.close();
+    fout.open(TOTLEMONEY_FILE,ios::in | ios::out | ios::binary);
+    if(!fout)throw("import3");
+    fout.seekg(0);
+    totlemoney tmp2;
+    fout.read(reinterpret_cast<char*>(&tmp2),sizeof(totlemoney));
+    tmp2.benefit += quantity_ * tmpbook.price;
+    fout.seekp(0);
+    fout.write(reinterpret_cast<char*>(&tmp2),sizeof(totlemoney));//更新总支出
+    fout.close();
+}
+
+
+void showfinance(){
+    fstream fin;
+    fin.open(TOTLEMONEY_FILE,ios::in | ios::out | ios::binary);
+    fin.seekg(0);
+    totlemoney tmp;
+    fin.read(reinterpret_cast<char*>(&tmp),sizeof(totlemoney));
+    cout<<"+"<<" "<<tmp.benefit<<" "<<"-"<<" "<<-tmp.expense<<endl;
+    fin.close();
+}
+
+void showfinancetime(int times){
+    fstream fin;
+    fin.open(TRANSACTION_FILE,ios::in | ios::out | ios::binary);
+    fin.seekg(ios::end - sizeof(transaction));
+    int cur,next;
+    cur = fin.tellg();
+    next = cur - sizeof(transaction);
+    int cnt = 1;
+    for(; cnt <= times ; cnt++){
+        if(cur < 0)throw("showfinancetimes1");
+        transaction tmp;
+        fin.seekg(cur);
+        fin.read(reinterpret_cast<char*>(&tmp),sizeof(transaction));
+        if(tmp.totalprice > 0)cout<<"+"<<" "<<setprecision(2)<<tmp.totalprice<<endl;
+        else cout<<"-"<<" "<<setprecision(2)<<-tmp.totalprice<<endl;
+        cur = next;
+        next -= sizeof(transaction);
+    }
+    fin.close();
+}
+
+void Run_Program(){
+
 }

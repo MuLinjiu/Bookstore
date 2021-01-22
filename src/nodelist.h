@@ -18,7 +18,7 @@ class node{
 public:
     int offset;
     char key[81];
-    explicit node(int offset_ = -1, const char* key_ = "");
+    explicit node(int offset_ = -1, const string& key_ = "");
     node(const node &a);
     bool operator<(const node &a) const;
     node &operator = (const node &a);

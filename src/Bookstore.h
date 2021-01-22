@@ -28,6 +28,26 @@ public:
 };
 
 
+class transaction{
+public:
+    char dealtime[30] = {0};
+    char user_id[30] = {0};
+    char ISBN[30] = {0};
+    int quantity = 0;
+    double totalprice = 0;//正数为收入，负数为支出
+    transaction();
+    transaction(const string & ISBN_,const string & user_id_,int quant, double price);
+
+};
+
+
+class totlemoney{
+public:
+    double benefit = 0;
+    double expense = 0;
+    totlemoney();
+};
+
 void initialize();
 
 
