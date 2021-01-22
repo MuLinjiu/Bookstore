@@ -13,6 +13,7 @@
 #define TOTLEMONEY_FILE "totalmoney.dat"
 #define TRANSACTION_FILE "transaction.dat"//记录每一笔交易
 #define BOOK_FILE "book_file.dat"//记录书的文件
+#define USER "user.dat"
 #define USER_ID_LIST_FILE "user_id.dat"
 nodelist USER_ID_LIST(USER_ID_LIST_FILE);
 #define ISBN_FILE "isbn.dat"
@@ -55,7 +56,7 @@ void changepassword(const char* user_id,const char * newpas,const char* oldpas =
 void selectbook(const string & ISBN_);
 
 
-void import(int quantity, int totleprice);
+void import(int quantity, double totleprice);
 
 
 void buy(const string &ISBN_,int quantity_);
@@ -66,7 +67,7 @@ void showfinance();
 
 void showfinancetime(int times);
 
-void Run_Program();
+void Run_Program(string &a);
 
 template <class T>
 T my_read(const string&  filename,int offset){

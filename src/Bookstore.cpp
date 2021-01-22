@@ -28,7 +28,48 @@ transaction::transaction(const string & ISBN_,const string & user_id_,int quant,
     totalprice = price;
 }
 
-totlemoney::totlemoney() = default;
+totlemoney::totlemoney() {
+    expense = 0;
+    benefit = 0;
+}
+
+
 void initialize(){
 //注意初始化totlemoney进入文件
+    fstream fin,fout;
+    fin.open(USER_ID_LIST_FILE,ios::in);
+    if(!fin){
+        fin.open(USER_ID_LIST_FILE,ios::out);
+        fin.close();
+        fin.open(USER,ios::out);
+        fin.close();
+        fin.open(TOTLEMONEY_FILE,ios::out);
+        fin.close();
+        fin.open(TRANSACTION_FILE,ios::out);
+        fin.close();
+        fin.open(BOOK_FILE,ios::out);
+        fin.close();
+        fin.open(ISBN_FILE,ios::out);
+        fin.close();
+        fin.open(AUTHOR_FILE,ios::out);
+        fin.close();
+        fin.open(NAME_FILE,ios::out);
+        fin.close();
+        fin.open(KEYWORD_FILE,ios::out);
+        fin.close();
+        user root("root","sjtu","root",7);
+        int offset = my_write<user>(USER,root);
+        node tmp(offset,"root");
+        USER_ID_LIST.addnode(tmp);
+
+
+
+        totlemoney tmpq;
+        fout.open(TOTLEMONEY_FILE,ios::in | ios ::out | ios::binary);
+        fout.seekp(0);
+        fout.write(reinterpret_cast<char*>(&tmpq),sizeof(totlemoney));
+        fout.close();
+    }else{
+        fin.close();
+    }
 }

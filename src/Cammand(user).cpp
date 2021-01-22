@@ -19,7 +19,7 @@ void login(const string &user_id_,string password ){
         vector<int>possibleoffset;
         USER_ID_LIST.findnode(user_id_,possibleoffset);
         if(possibleoffset.empty())throw("cannot find the userid");
-        user tmp(my_read<user>(USER_ID_LIST_FILE,possibleoffset[0]));
+        user tmp(my_read<user>(USER,possibleoffset[0]));
         if (USERONLINE.top().priority > tmp.priority){
             USERONLINE.push(tmp);
         }else{
@@ -29,7 +29,7 @@ void login(const string &user_id_,string password ){
         vector<int>psf;
         USER_ID_LIST.findnode(user_id_,psf);
         if(psf.empty())throw("cannot find the userid");
-        user tmp(my_read<user>(USER_ID_LIST_FILE,psf[0]));
+        user tmp(my_read<user>(USER,psf[0]));
         if(strcmp(tmp.password,password.c_str()) == 0 && strcmp(tmp.user_id,user_id_.c_str()) == 0){
             USERONLINE.push(tmp);
         }else{
@@ -44,18 +44,18 @@ void logout(){
 }
 
 void register_(user & x){
-    int offset = my_write<user>(USER_ID_LIST_FILE,x);//缺省
+    int offset = my_write<user>(USER,x);//缺省
     node a(offset,x.user_id);
     USER_ID_LIST.addnode(a);
 }
 
 void addaccount(user &x){
-    int offset = my_write<user>(USER_ID_LIST_FILE,x);//缺省
+    int offset = my_write<user>(USER,x);//缺省
     node a(offset,x.user_id);
     USER_ID_LIST.addnode(a);
 }
 
-void deleteaccount(const char* user_id){
+void deleteaccount(const string & user_id){
     if(user_id == "root")throw("error");
     vector<int>possibleoffset;
     USER_ID_LIST.findnode(user_id,possibleoffset);
@@ -69,14 +69,14 @@ void changepassword(const char* user_id,const char * newpas,const char* oldpas )
     vector<int>possibleoffset;
     USER_ID_LIST.findnode(user_id,possibleoffset);
     if(possibleoffset.empty())throw("cannot find the userid");
-    user tmp(my_read<user>(USER_ID_LIST_FILE,possibleoffset[0]));
+    user tmp(my_read<user>(USER,possibleoffset[0]));
     if(strlen(oldpas) != 0){
         if(strcmp(oldpas,tmp.password) != 0){
             throw("wrong oldpassword");
         }
     }
     strcpy(tmp.password,newpas);
-    my_write<user>(USER_ID_LIST_FILE,tmp,possibleoffset[0]);
+    my_write<user>(USER,tmp,possibleoffset[0]);
 }
 
 void selectbook(const string & ISBN_){
@@ -104,7 +104,7 @@ void selectbook(const string & ISBN_){
     }
 }
 
-void import(int quantity_, int totleprice ){
+void import(int quantity_, double totleprice ){
     if(USERONLINE.top().priority >= 3){
         int offset = USERONLINE.top().select;
         if(offset == -1)throw("error");
@@ -203,6 +203,154 @@ void showfinancetime(int times){
     fin.close();
 }
 
-void Run_Program(){
+void Run_Program(string &a){
+    int len = a.length();
+    string type;
+    int i = 0;
+    for( ; i < len  && a[i] != ' ';i++){
+        type += a[i];
+    }
+    if(type == "su"){
+        string user_id,passwd;
+        for (++i; i < len && a[i] != ' '; ++i) user_id += a[i];
+        for (++i; i < len && a[i] != ' '; ++i) passwd += a[i];
+        for (; i < len && a[i] == ' '; ++i);
+        if(i >= len && strlen(user_id.c_str()) <= 30 &&  strlen(user_id.c_str()) > 0 && strlen(passwd.c_str()) <= 30 ){
+            login(user_id,passwd);
+        }else{
+            throw("error");
+        }
+    }
+    else if(type == "logout"){
+        for (; i < len && a[i] == ' '; ++i);
+        if(i >= len )logout();
+    }
+    else if(type == "useradd"){
+        string user_id, passwd, name; char pri;
+        for (++i; i < len && a[i] != ' '; ++i) user_id += a[i];
+        for (++i; i < len && a[i] != ' '; ++i) passwd += a[i];
+        pri = a[++i];
+        ++i;
+        for (++i; i < len && a[i] != ' '; ++i) name += a[i];
+        for (; i < len && a[i] == ' '; ++i);
+        if(i >= len && strlen(user_id.c_str()) > 0 && strlen(passwd.c_str()) > 0 && strlen(name.c_str()) > 0 &&
+                strlen(user_id.c_str()) <= 30 && strlen(passwd.c_str()) <= 30 && strlen(name.c_str()) < 30)
+        {
+            user tmp(user_id,passwd,name,pri-'0');
+            addaccount(tmp);
+        }
+        else throw("error");
+    }
+    else if(type == "register"){
+        string user_id, passwd, name;
+        for (++i; i < len && a[i] != ' '; ++i) user_id += a[i];
+        for (++i; i < len && a[i] != ' '; ++i) passwd += a[i];
+        for (++i; i < len && a[i] != ' '; ++i) name += a[i];
+        for (; i < len && a[i] == ' '; ++i);
+        if(i >= len && strlen(user_id.c_str()) > 0 && strlen(passwd.c_str()) > 0 && strlen(name.c_str()) > 0 &&
+           strlen(user_id.c_str()) <= 30 && strlen(passwd.c_str()) <= 30 && strlen(name.c_str()) < 30)
+        {
+            user tmp(user_id,passwd,name,1);
+            register_(tmp);
+        }else{
+            throw("error");
+        }
+    }
+    else if(type == "delete"){
+        string user_id;
+        for (++i; i < len && a[i] != ' '; ++i) user_id += a[i];
+        for (; i < len && a[i] == ' '; ++i);
+        if(i >= len && strlen(user_id.c_str()) > 0 && strlen(user_id.c_str()) <= 30 && USERONLINE.top().priority >= 7){
+            deleteaccount(user_id);
+        }
+
+    }
+    else if(type == "passwd"){
+        string user_id, oldpass, newpass;
+        for (++i; i < len && a[i] != ' '; ++i) user_id += a[i];
+        for (++i; i < len && a[i] != ' '; ++i) oldpass += a[i];
+        for (++i; i < len && a[i] != ' '; ++i) newpass += a[i];
+        for (; i < len && a[i] == ' '; ++i);
+        if(i >= len && strlen(user_id.c_str()) > 0 && strlen(oldpass.c_str()) > 0 && strlen(user_id.c_str()) <= 30 && strlen(oldpass.c_str()) <= 30 && strlen(newpass.c_str()) <= 30)
+        {
+            if(newpass.empty() && USERONLINE.top().priority == 7){
+                changepassword(user_id.c_str(),oldpass.c_str(),newpass.c_str());
+            }
+            else if(USERONLINE.top().priority >= 1){
+                changepassword(user_id.c_str(),newpass.c_str(),oldpass.c_str());
+            }else throw("error");
+        }
+    }
+    else if(type == "select"){
+        string ISBN;
+        for (++i; i < len && a[i] != ' '; ++i) ISBN += a[i];
+        for (; i < len && a[i] == ' '; ++i);
+        if(i >= len && strlen(ISBN.c_str()) > 0 && strlen(ISBN.c_str()) <= 20){
+            selectbook(ISBN);//函数内部判断是否足够权限
+        }
+        else throw("error");
+    }
+    else if(type == "import"){
+        string value1, value2; int quantity; double cost_price;
+        for (++i; i < len && a[i] != ' '; ++i) value1 += a[i];
+        for (++i; i < len && a[i] != ' '; ++i) value2 += a[i];
+        if (strlen(value1.c_str()) > 0 && strlen(value2.c_str()) > 0) {
+            stringstream str1(value1), str2(value2);
+            str1 >> quantity, str2 >> cost_price;
+            for (; i < len && a[i] == ' '; ++i);
+            if (i >= len ) {
+                import(quantity,cost_price);
+            } else throw("error");
+        } else throw("error");
+    }
+    else if(type == "modify"){
+
+    }
+    else if(type == "show"){
+        if(i >= len || a[i + 1] == '-'){
+            string command;
+            for(++i; i < len ; i++){
+                command += a[i];
+            }
+            //show操作
+
+
+
+
+
+        }else{
+            string type2;
+            for (++i; i < len && a[i] != ' '; ++i) type2 += a[i];
+            if(type2 == "finance"){
+                string value;
+                int times;
+                for (++i; i < len && a[i] != ' '; ++i) value += a[i];
+                for (; i < len && a[i] == ' '; ++i);
+                if(i >= len && USERONLINE.top().priority == 7){
+                    if(value.empty())showfinance();
+                    else {
+                        stringstream str(value);
+                        str >> times;//快速转化
+                        showfinancetime(times);
+                    }
+                } else throw"error";
+            }else throw"error";
+        }
+        throw"error";
+    }
+    else if(type == "buy"){
+        string ISBN, value; int quantity;
+        for (++i; i < len && a[i] != ' '; ++i) ISBN += a[i];
+        for (++i; i < len && a[i] != ' '; ++i) value += a[i];
+        stringstream str(value); str >> quantity;
+        for (; i < len && a[i] == ' '; ++i) ;
+        if (i >= len && strlen(value.c_str()) > 0 && strlen(ISBN.c_str()) > 0 && strlen(ISBN.c_str()) <= 20 && USERONLINE.top().priority >= 1) {
+            buy(ISBN,quantity);
+        } else throw("error");
+    }
+    else if(type == "report"){}
+
+    else if(type == "log"){}
+    else throw"error";
 
 }
