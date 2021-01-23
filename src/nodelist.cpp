@@ -229,12 +229,17 @@ void nodelist::findnode(const string & key_, vector<int>&possibileoffset){
     if(!fin || !fout)throw("error");
     fin.seekg(0,ios::end);
     int a = fin.tellg();
+    fin.close();
     if(a == 0){
-        throw("error");
+        square tmp;
+        fout.seekp(0);
+        fout.write(reinterpret_cast<const char *>(&tmp), sizeof(square));
+        fout.close();
     }
+    fin.open(filename,ios::in | ios :: binary);
     int cur = 0;
     int next = nextsquare(0);
-    while(next != -1){
+    while(next >= 0){
         square tmp;
         fin.seekg(next);
         fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));

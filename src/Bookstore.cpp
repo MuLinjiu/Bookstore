@@ -26,7 +26,9 @@ bool Book::operator<(Book &a) {
 
 
 void Book::show() const {
-    cout<<ISBN<<" "<<name<<" "<<author<<" "<<key_word<<" "<<setprecision(2)<<price<<" "<<quantity<<endl;
+    cout<<ISBN<<" "<<name<<" "<<author<<" "<<key_word<<" ";
+    printf("%.2lf",price);
+    cout<<" "<<quantity<<endl;
 }
 
 transaction::transaction() = default;

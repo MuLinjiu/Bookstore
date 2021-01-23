@@ -225,7 +225,10 @@ void showfinancetime(int times){
 void show(const string &key,nodelist &a){
     vector<int>possibleoffset;
     a.findnode(key,possibleoffset);
-    if(possibleoffset.empty())throw"error";
+    if(possibleoffset.empty()) {
+        cout<<"\n";
+        return;
+    }
     vector<Book>bookstack;
     int i = 0;
     fstream fin(BOOK_FILE,ios::in | ios :: out | ios ::binary);
@@ -235,8 +238,13 @@ void show(const string &key,nodelist &a){
         Book tmp;
         fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
         bookstack.push_back(tmp);
+        i++;
     }
     fin.close();
+    if(bookstack.empty()){
+        cout<<"\n";
+        return;
+    }
     sort(bookstack.begin(),bookstack.end());
     for(auto & it : bookstack){
         it.show();
@@ -257,6 +265,10 @@ void show(){
         bookstack.push_back(tmp);
         cur += sizeof(Book);
     }
+    if(bookstack.empty()){
+        cout<<"\n";
+        return;
+    }
     sort(bookstack.begin(),bookstack.end());
     for(auto & i : bookstack){
         i.show();
@@ -275,10 +287,16 @@ void modifyISBN(const string &key){
     fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
     vector<int>possibleoffset;
     ISBN_LIST.findnode(tmp.ISBN,possibleoffset);
-    if(possibleoffset.empty()) {
-        node x(offset,key);
-        ISBN_LIST.addnode(x);
+//    if(possibleoffset.empty()) {
+//        node x(offset,key);
+//        ISBN_LIST.addnode(x);
+//    }
+    if(!possibleoffset.empty()) {
+        node a(offset, tmp.ISBN);
+        ISBN_LIST.deletenode(a);
     }
+    node b(offset,key);
+    ISBN_LIST.addnode(b);
     strcpy(tmp.ISBN,key.c_str());
     fin.seekp(offset);
     fin.write(reinterpret_cast<char*>(&tmp),sizeof(Book));
@@ -296,10 +314,16 @@ void modifyNAME(const string &key){
     fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
     vector<int>possibleoffset;
    NAME_LIST.findnode(tmp.name,possibleoffset);
-    if(possibleoffset.empty()) {
-        node x(offset,key);
-        NAME_LIST.addnode(x);
+//    if(possibleoffset.empty()) {
+//        node x(offset,key);
+//        NAME_LIST.addnode(x);
+//    }
+    if(!possibleoffset.empty()) {
+        node a(offset, tmp.name);
+        NAME_LIST.deletenode(a);
     }
+    node b(offset,key);
+    NAME_LIST.addnode(b);
     strcpy(tmp.name,key.c_str());
     fin.seekp(offset);
     fin.write(reinterpret_cast<char*>(&tmp),sizeof(Book));
@@ -316,10 +340,16 @@ void modifyAUTHOR(const string &key){
     fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
     vector<int>possibleoffset;
     AUTHOR_LIST.findnode(tmp.author,possibleoffset);
-    if(possibleoffset.empty()) {
-        node x(offset,key);
-        AUTHOR_LIST.addnode(x);
+//    if(possibleoffset.empty()) {
+//        node x(offset,key);
+//        AUTHOR_LIST.addnode(x);
+//    }
+    if(!possibleoffset.empty()) {
+        node a(offset, tmp.author);
+        AUTHOR_LIST.deletenode(a);
     }
+    node b(offset,key);
+    AUTHOR_LIST.addnode(b);
     strcpy(tmp.author,key.c_str());
     fin.seekp(offset);
     fin.write(reinterpret_cast<char*>(&tmp),sizeof(Book));
@@ -337,13 +367,19 @@ void modifyKEYWORD(const string &key){
     fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
     vector<int>possibleoffset;
     KEYWORD_LIST.findnode(tmp.key_word,possibleoffset);
-    if(possibleoffset.empty()) {
-        node x(offset,key);
-        KEYWORD_LIST.addnode(x);
+//    if(possibleoffset.empty()) {
+//        node x(offset,key);
+//        KEYWORD_LIST.addnode(x);
+//    }
+    if(!possibleoffset.empty()) {
+        node a(offset, tmp.key_word);
+        KEYWORD_LIST.deletenode(a);
     }
+    node b(offset,key);
+    KEYWORD_LIST.addnode(b);//更新链表
     strcpy(tmp.key_word,key.c_str());
     fin.seekp(offset);
-    fin.write(reinterpret_cast<char*>(&tmp),sizeof(Book));
+    fin.write(reinterpret_cast<char*>(&tmp),sizeof(Book));//更新文件
     fin.close();
 }
 
@@ -415,7 +451,6 @@ void Run_Program(string &a){
             return;
         }
         else throw("error");
-        return;
     }
     else if(type == "register"){
         string user_id, passwd, name;
@@ -491,30 +526,34 @@ void Run_Program(string &a){
     else if(type == "modify"){
         while(i < len){
             string command;
-            for (++i; a[i] != ' '; ++i) command += a[i];
+            for (++i; a[i] != ' ' && a[i] != '\0' && a[i] != '\n'; ++i) command += a[i];
             switch (command[1]) {
                 case 'I':{
-                    command.substr(7);
+                    command = command.substr(6);
+                    //command = command.substr(1,strlen(command.c_str()) - 2);
                     modifyISBN(command);
                     break;
                 }
                 case 'n':{
-                    command.substr(7);
+                    command = command.substr(6);
+                    command = command.substr(1,strlen(command.c_str()) - 2);
                     modifyNAME(command);
                     break;
                 }
                 case 'a':{
-                    command.substr(9);
+                    command = command.substr(8);
+                    command = command.substr(1,strlen(command.c_str()) - 2);
                     modifyAUTHOR(command);
                     break;
                 }
                 case 'k':{
-                    command.substr(10);
+                    command = command.substr(9);
+                    command = command.substr(1,strlen(command.c_str()) - 2);
                     modifyKEYWORD(command);
                     break;
                 }
                 case 'p':{
-                    command.substr(8);
+                    command = command.substr(7);
                     stringstream str;
                     str<<command;
                     double price;
@@ -535,26 +574,32 @@ void Run_Program(string &a){
             }
             //show操作
             if (USERONLINE.top().priority >= 1) {
-                if (command.empty())show();
+                if (command.empty()){
+                    show();
+                    return;
+                }
                 else {
                     switch (command[1]) {
                         case 'I': {
-                            command.substr(7);
+                            command = command.substr(6);
                             show(command, ISBN_LIST);
                             return;
                         }
                         case 'n': {
-                            command.substr(7);
+                            command = command.substr(6);
+                            command = command.substr(1,strlen(command.c_str()) - 2);
                             show(command, NAME_LIST);
                             return;
                         }
                         case 'a': {
-                            command.substr(9);
+                            command = command.substr(8);
+                            command = command.substr(1,strlen(command.c_str()) - 2);
                             show(command, AUTHOR_LIST);
                             return;
                         }
                         case 'k': {
-                            command.substr(10);
+                            command = command.substr(9);
+                            command = command.substr(1,strlen(command.c_str()) - 2);
                             show(command, KEYWORD_LIST);
                             return;
                         }
@@ -586,7 +631,6 @@ void Run_Program(string &a){
                 } else throw"error";
             }else throw"error";
         }
-        throw"error";
     }
     else if(type == "buy"){
         string ISBN, value; int quantity;
