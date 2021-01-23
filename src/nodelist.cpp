@@ -42,9 +42,10 @@ square::square() {
 }
 
 void nodelist::merge(int offset1, int offset2) {
+    fstream fin,fout;
     fin.open(filename,ios::in | ios::binary);
     fout.open(filename,ios::out | ios :: in | ios ::binary);
-    if(!fin || !fout)cerr<<"can not open the file(merge)"<<endl;
+    if(!fin || !fout)throw("error");
     square square1,square2 ;
     fout.open(filename,ios::out | ios :: in | ios ::binary);
     fout.seekg(offset1);
@@ -68,9 +69,10 @@ void nodelist::merge(int offset1, int offset2) {
 
 
 void nodelist::split(int offset) {
+    fstream fin,fout;
     fin.open(filename,ios::in | ios::binary);
     fout.open(filename,ios::out | ios :: in | ios ::binary);
-    if(!fin || !fout)cerr<<"can not open the file(split)"<<endl;
+    if(!fin || !fout)throw("error");
     square square1,square2,square_tmp;
     fout.seekg(offset);
     fout.read(reinterpret_cast<char *>(&square_tmp),sizeof(square));
@@ -102,8 +104,9 @@ void nodelist::split(int offset) {
 
 
 int nodelist::nextsquare(int offset) {
+    fstream fin,fout;
     fin.open(filename,ios::in | ios::binary);
-    if(!fin)cerr<<"cannot open the file(next square)\n";\
+    if(!fin)throw("error");
     fin.seekg(offset);
     int next;
     fin.read(reinterpret_cast<char *>(&next),sizeof(int));
@@ -113,9 +116,10 @@ int nodelist::nextsquare(int offset) {
 
 
 void nodelist::addnode(node &o) {
+    fstream fin,fout;
     fin.open(filename,ios::in | ios :: binary);
     fout.open(filename,ios::in | ios::out | ios::binary);
-    if(!fin || !fout)cerr<<"cannot open the file(addnode)\n";
+    if(!fin || !fout)throw("error");
     fin.seekg(0,ios::end);
     int a = fin.tellg();
     if(a == 0){
@@ -166,14 +170,14 @@ void nodelist::addnode(node &o) {
 
 
 void nodelist::deletenode(node &o) {
+    fstream fin,fout;
     fin.open(filename,ios::in | ios :: binary);
     fout.open(filename,ios::in | ios::out | ios::binary);
-    if(!fin || !fout)cerr<<"cannot open the file(deletenode)\n";
+    if(!fin || !fout)throw("error");
     fin.seekg(0,ios::end);
     int a = fin.tellg();
     if(a == 0){
-        cerr<<"you are deleting an empty list(deletenode)\n";
-        return;
+        throw("error");
     }
     int cur = 0;
     int next = nextsquare(0);
@@ -192,15 +196,14 @@ void nodelist::deletenode(node &o) {
     int x;
     for(int i = 0 ; i < tmp.length; i++)
     {
-        if(o.key == tmp.nodearray[i].key && o.offset == tmp.nodearray[i].offset){
+        if(strcmp(o.key,tmp.nodearray[i].key) == 0&& o.offset == tmp.nodearray[i].offset){
             x = i;
             flag = true;
             break;
         }
     }
     if(!flag){
-        cerr<<"do not find the node(deletenode)\n";
-        return;
+        throw("error");
     }
     for(int i = x ; i <= tmp.length - 2; i++)
     {
@@ -219,15 +222,15 @@ void nodelist::deletenode(node &o) {
     if(tmp.length + nextlen <= merge_max_lenth && next != -1)merge(cur,next);
 }
 
-void nodelist::findnode(const string & key_, vector<int>possibileoffset){
+void nodelist::findnode(const string & key_, vector<int>&possibileoffset){
+    fstream fin,fout;
     fin.open(filename,ios::in | ios :: binary);
     fout.open(filename,ios::in | ios::out | ios::binary);
-    if(!fin || !fout)cerr<<"cannot open the file(findelement)\n";
+    if(!fin || !fout)throw("error");
     fin.seekg(0,ios::end);
     int a = fin.tellg();
     if(a == 0){
-        cerr<<"you are finding an empty list(findnode)\n";
-        return;
+        throw("error");
     }
     int cur = 0;
     int next = nextsquare(0);
@@ -250,10 +253,9 @@ void nodelist::findnode(const string & key_, vector<int>possibileoffset){
             possibileoffset.push_back(tmp.nodearray[i].offset);
         }
     }
-    if(possibileoffset.empty()){
-        cerr<<"do not find the node(findnode)\n";
-        return;
-    }
+//    if(possibileoffset.empty()){
+//        throw("error");
+//    }
     fin.close();
 }
 

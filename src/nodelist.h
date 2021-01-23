@@ -35,13 +35,12 @@ public:
 class nodelist{
 public:
     char filename[100]{};
-    fstream fin,fout;
     int nextsquare(int offset);
     void merge(int offset1,int offset2);
     void split(int offset);
     void addnode(node & o);
     void deletenode(node & o);
     explicit nodelist(const string &file_);
-    void findnode(const string & key_, vector<int>possibileoffset);//借鉴夏天
+    void findnode(const string & key_, vector<int>&possibileoffset);//借鉴夏天
 };
 #endif //MAIN_CPP_NODELIST_H

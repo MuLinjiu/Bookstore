@@ -31,16 +31,21 @@ void login(const string &user_id_,string password ){
         if (USERONLINE.top().priority > tmp.priority){
             USERONLINE.push(tmp);
         }else{
+            cout<<"1";
             throw("error");
         }
     }else{
         vector<int>psf;
         USER_ID_LIST.findnode(user_id_,psf);
-        if(psf.empty())throw("cannot find the userid");
+        if(psf.empty()){
+            cout<<"2";
+            throw("cannot find the userid");
+        }
         user tmp(my_read<user>(USER,psf[0]));
         if(strcmp(tmp.password,password.c_str()) == 0 && strcmp(tmp.user_id,user_id_.c_str()) == 0){
             USERONLINE.push(tmp);
         }else{
+            cout<<"3";
             throw("error");
         }
     }
@@ -52,12 +57,18 @@ void logout(){
 }
 
 void register_(user & x){
+    vector<int>possibleoffset;
+    USER_ID_LIST.findnode(x.user_id,possibleoffset);
+    if(!possibleoffset.empty())throw("error");
     int offset = my_write<user>(USER,x);//缺省
     node a(offset,x.user_id);
     USER_ID_LIST.addnode(a);
 }
 
 void addaccount(user &x){
+    vector<int>possibleoffset;
+    USER_ID_LIST.findnode(x.user_id,possibleoffset);
+    if(!possibleoffset.empty())throw("error");
     int offset = my_write<user>(USER,x);//缺省
     node a(offset,x.user_id);
     USER_ID_LIST.addnode(a);
@@ -239,7 +250,7 @@ void show(){
     int offsetmax = fin.tellg();
     vector<Book>bookstack;
     int cur = 0;
-    while(cur <= offsetmax){
+    while(cur < offsetmax){
         Book tmp;
         fin.seekg(cur);
         fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
@@ -376,18 +387,22 @@ void Run_Program(string &a){
         for (; i < len && a[i] == ' '; ++i);
         if(i >= len && strlen(user_id.c_str()) <= 30 &&  strlen(user_id.c_str()) > 0 && strlen(passwd.c_str()) <= 30 ){
             login(user_id,passwd);
+            return;
         }else{
             throw("error");
         }
+        return;
     }
     else if(type == "logout"){
         for (; i < len && a[i] == ' '; ++i);
         if(i >= len )logout();
+        return;
     }
     else if(type == "useradd"){
         string user_id, passwd, name; char pri;
         for (++i; i < len && a[i] != ' '; ++i) user_id += a[i];
         for (++i; i < len && a[i] != ' '; ++i) passwd += a[i];
+        if(i == len )throw("error");
         pri = a[++i];
         ++i;
         for (++i; i < len && a[i] != ' '; ++i) name += a[i];
@@ -397,8 +412,10 @@ void Run_Program(string &a){
         {
             user tmp(user_id,passwd,name,pri-'0');
             addaccount(tmp);
+            return;
         }
         else throw("error");
+        return;
     }
     else if(type == "register"){
         string user_id, passwd, name;
@@ -411,8 +428,10 @@ void Run_Program(string &a){
         {
             user tmp(user_id,passwd,name,1);
             register_(tmp);
+            return;
         }else{
             throw("error");
+            return;
         }
     }
     else if(type == "delete"){
@@ -422,7 +441,7 @@ void Run_Program(string &a){
         if(i >= len && strlen(user_id.c_str()) > 0 && strlen(user_id.c_str()) <= 30 && USERONLINE.top().priority >= 7){
             deleteaccount(user_id);
         }
-
+        return;
     }
     else if(type == "passwd"){
         string user_id, oldpass, newpass;
@@ -434,11 +453,14 @@ void Run_Program(string &a){
         {
             if(newpass.empty() && USERONLINE.top().priority == 7){
                 changepassword(user_id.c_str(),oldpass.c_str(),newpass.c_str());
+                return;
             }
             else if(USERONLINE.top().priority >= 1){
                 changepassword(user_id.c_str(),newpass.c_str(),oldpass.c_str());
+                return;
             }else throw("error");
         }
+        return;
     }
     else if(type == "select"){
         string ISBN;
@@ -446,8 +468,10 @@ void Run_Program(string &a){
         for (; i < len && a[i] == ' '; ++i);
         if(i >= len && strlen(ISBN.c_str()) > 0 && strlen(ISBN.c_str()) <= 20){
             selectbook(ISBN);//函数内部判断是否足够权限
+            return;
         }
         else throw("error");
+        return;
     }
     else if(type == "import"){
         string value1, value2; int quantity; double cost_price;
@@ -459,8 +483,10 @@ void Run_Program(string &a){
             for (; i < len && a[i] == ' '; ++i);
             if (i >= len ) {
                 import(quantity,cost_price);
+                return;
             } else throw("error");
         } else throw("error");
+        return;
     }
     else if(type == "modify"){
         while(i < len){
@@ -499,6 +525,7 @@ void Run_Program(string &a){
                 default:throw("error");
             }
         }
+        return;
     }
     else if(type == "show"){
         if(i >= len || a[i + 1] == '-') {
@@ -536,6 +563,7 @@ void Run_Program(string &a){
                     }
                 }
             }
+            return;
         }else{
             string type2;
             for (++i; i < len && a[i] != ' '; ++i) type2 += a[i];
@@ -545,11 +573,15 @@ void Run_Program(string &a){
                 for (++i; i < len && a[i] != ' '; ++i) value += a[i];
                 for (; i < len && a[i] == ' '; ++i);
                 if(i >= len && USERONLINE.top().priority == 7){
-                    if(value.empty())showfinance();
+                    if(value.empty()){
+                        showfinance();
+                        return;
+                    }
                     else {
                         stringstream str(value);
                         str >> times;//快速转化
                         showfinancetime(times);
+                        return;
                     }
                 } else throw"error";
             }else throw"error";
@@ -563,12 +595,46 @@ void Run_Program(string &a){
         stringstream str(value); str >> quantity;
         for (; i < len && a[i] == ' '; ++i) ;
         if (i >= len && strlen(value.c_str()) > 0 && strlen(ISBN.c_str()) > 0 && strlen(ISBN.c_str()) <= 20 && USERONLINE.top().priority >= 1) {
-            buy(ISBN,quantity);
+            {
+                buy(ISBN,quantity);
+                return;
+            }
         } else throw("error");
+        return;
     }
     else if(type == "report"){}
-
     else if(type == "log"){}
-    else throw"error";
+    else if(type == "exit" || type == "quit" ){
+        fstream fin,fout;
+        fin.open(USER_ID_LIST_FILE,ios::out);
+        fin.close();
+        fin.open(USER,ios::out);
+        fin.close();
+        fin.open(TOTLEMONEY_FILE,ios::out);
+        fin.close();
+        fin.open(TRANSACTION_FILE,ios::out);
+        fin.close();
+        fin.open(BOOK_FILE,ios::out);
+        fin.close();
+        fin.open(ISBN_FILE,ios::out);
+        fin.close();
+        fin.open(AUTHOR_FILE,ios::out);
+        fin.close();
+        fin.open(NAME_FILE,ios::out);
+        fin.close();
+        fin.open(KEYWORD_FILE,ios::out);
+        fin.close();
+        user root("root","sjtu","root",7);
+        int offset = my_write<user>(USER,root);
+        node tmp(offset,"root");
+        USER_ID_LIST.addnode(tmp);
+        totlemoney tmpq;
+        fout.open(TOTLEMONEY_FILE,ios::in | ios ::out | ios::binary);
+        fout.seekp(0);
+        fout.write(reinterpret_cast<char*>(&tmpq),sizeof(totlemoney));
+        fout.close();
+        exit(0);
+    }
+    else throw("errorlast");
 
 }
