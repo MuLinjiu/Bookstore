@@ -9,6 +9,7 @@
 #include <vector>
 #include<stack>
 #include"nodelist.h"
+#include "Bookstore.h"
 
 #define TOTLEMONEY_FILE "totalmoney.dat"
 #define TRANSACTION_FILE "transaction.dat"//记录每一笔交易
@@ -97,6 +98,11 @@ void modifyPRICEC(double price);
 
 
 void Run_Program(string &a);
+
+void splitkey(string str,vector<string>&a);
+
+void clear();
+
 
 template <class T>
 T my_read(const string&  filename,int offset){

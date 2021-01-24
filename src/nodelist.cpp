@@ -3,7 +3,8 @@
 //
 
 #include "nodelist.h"
-
+#include <iostream>
+#include <cstring>
 
 node::node(const node &a) {
     offset = a.offset;
@@ -177,7 +178,7 @@ void nodelist::deletenode(node &o) {
     fin.seekg(0,ios::end);
     int a = fin.tellg();
     if(a == 0){
-        throw("error");
+        return;
     }
     int cur = 0;
     int next = nextsquare(0);
@@ -203,7 +204,7 @@ void nodelist::deletenode(node &o) {
         }
     }
     if(!flag){
-        throw("error");
+        return;
     }
     for(int i = x ; i <= tmp.length - 2; i++)
     {
@@ -243,7 +244,7 @@ void nodelist::findnode(const string & key_, vector<int>&possibileoffset){
         square tmp;
         fin.seekg(next);
         fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
-        if(key_ < tmp.nodearray[0].key)break;
+        if(strcmp(key_.c_str(),tmp.nodearray[0].key) <= 0)break;
         cur = next;
         next = nextsquare(cur);
     }
@@ -258,6 +259,38 @@ void nodelist::findnode(const string & key_, vector<int>&possibileoffset){
             possibileoffset.push_back(tmp.nodearray[i].offset);
         }
     }
+//    for(int i = 0 ; i < tmp.length ; i++)
+//    {
+//        for(int j = 0 ; j + strlen(key_.c_str()) - 1 <= strlen(tmp.nodearray[i].key) - 1 ; j++){
+//            char temp[100];
+//            for(int k = 0 ; k <= strlen(key_.c_str());k++)temp[k] = tmp.nodearray[i].key[k + j];
+//            if(strcmp( key_.c_str(), temp) == 0)possibileoffset.push_back(tmp.nodearray[i].offset);
+//        }
+//    }
+   // bool flag = true;
+//    while (flag && (cur >= 0)) {
+//        flag = false;
+//        square tempBlock;
+//        fin.seekg(cur);
+//        fin.read(reinterpret_cast<char *>(&tempBlock), sizeof(square));
+//        node tempElement(-1, key_);
+//        int len = tempBlock.length;
+//        int pos = lower_bound(tempBlock.nodearray, tempBlock.nodearray + len, tempElement) - tempBlock.nodearray;
+//        for (int i = pos; i < len; i++) {
+//            if (strcmp(tempBlock.nodearray[i].key, key_.c_str()) < 0) break;
+//            if (strcmp(tempBlock.nodearray[i].key, key_.c_str()) == 0) {
+//                possibileoffset.push_back(tempBlock.nodearray[i].offset);
+//                if (i == len - 1) {
+//                    flag = true;
+//                    cur = nextsquare(cur);
+//                }
+//            }
+//        }
+//        if (pos == len) {
+//            flag = true;
+//            cur = nextsquare(cur);
+//        }
+//    }
 //    if(possibileoffset.empty()){
 //        throw("error");
 //    }

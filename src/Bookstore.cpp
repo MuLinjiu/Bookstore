@@ -4,7 +4,8 @@
 
 #include "Bookstore.h"
 #include <iomanip>
-
+#include <fstream>
+#include <cstring>
 extern nodelist USER_ID_LIST;
 
 using namespace std;
@@ -20,7 +21,9 @@ Book::Book(double _price, int _quantity, const string &ISBN_, const string &_nam
 }
 
 bool Book::operator<(Book &a) {
-    return ((*this).ISBN < a.ISBN);
+    int c = strcmp(this->ISBN,a.ISBN);
+    if(c < 0)return true;
+    else return false;
 }
 
 
@@ -84,4 +87,9 @@ void initialize(){
     }else{
         fin.close();
     }
+}
+
+
+bool mycmp(Book a,Book b){
+    return (a < b);
 }

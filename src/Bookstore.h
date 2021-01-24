@@ -51,7 +51,7 @@ public:
 
 void initialize();
 
-
+bool mycmp(Book a,Book b);
 
 
 #endif //NODELIST_CPP_BOOKSTORE_H
