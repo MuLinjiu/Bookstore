@@ -15,7 +15,7 @@ int main() {
         try{
             Run_Program(command);
         }catch (...){
-            cout<<"INVALID\n";
+            cout<<"Invalid\n";
         }
     }
     return 0;

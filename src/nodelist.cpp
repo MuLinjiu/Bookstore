@@ -1,7 +1,7 @@
 //
 // Created by 18382 on 2021/1/20.
 //
-
+#include "Cammand(user).h"
 #include "nodelist.h"
 #include <iostream>
 #include <cstring>
@@ -21,7 +21,8 @@ node::node(int offset_, const string& key_) {
 
 
 bool node::operator<(const node &a) const {
-    return (strcmp(key,a.key));
+    if(strcmp(key,a.key) < 0)return true;
+    else return false;
 }
 
 
@@ -90,11 +91,14 @@ void nodelist::split(int offset) {
     square2.length = square_tmp.length - split_remain;
     fin.seekg(0,ios::end);
     int offset2 = fin.tellg();
-    fout.seekp(square1.next + sizeof(int));
-    fout.write(reinterpret_cast<char *>(&offset2),sizeof(int));
-    square2.next = square1.next;
-    square1.next = offset2;
+    if(square_tmp.next >= 0) {
+        fout.seekp(square_tmp.next + sizeof(int));
+        fout.write(reinterpret_cast<char *>(&offset2), sizeof(int));
+    }
+    square2.next = square_tmp.next;
     square2.previous = offset;
+    square1.next = offset2;
+    square1.previous = square_tmp.previous;
     fout.seekp(offset);
     fout.write(reinterpret_cast<char*>(&square1),sizeof(square));
     fout.seekp(offset2);
@@ -106,7 +110,7 @@ void nodelist::split(int offset) {
 
 int nodelist::nextsquare(int offset) {
     fstream fin,fout;
-    fin.open(filename,ios::in | ios::binary);
+    fin.open(filename,ios::in | ios::out | ios::binary);
     if(!fin)throw("error");
     fin.seekg(offset);
     int next;
@@ -130,15 +134,20 @@ void nodelist::addnode(node &o) {
     }
     int cur = 0;
     int next;
+    int pre = 0;
     fin.seekg(0);
     fin.read(reinterpret_cast<char *>(&next),sizeof(int));
     while(next != -1){
         square tmp ;
         fin.seekg(next);
         fin.read(reinterpret_cast<char *>(&tmp),sizeof(square));
-        if(o.key < tmp.nodearray[0].key){
+        if(o.key <= tmp.nodearray[0].key){
             break;
         }
+        square a1;
+        fin.seekg(cur);
+        fin.read(reinterpret_cast<char*>(&a1),sizeof(square));
+        if(strcmp(o.key,tmp.nodearray[0].key) > 0)pre = cur;
         cur = next;
         next = nextsquare(cur);
     }
@@ -147,12 +156,15 @@ void nodelist::addnode(node &o) {
     fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
     bool flag = false;
     int x;
-    for(int i = 0 ; i < tmp.length ; i++)
-    {
-        if(o.key < tmp.nodearray[i].key){
-            x = i;
-            flag = true;
-            break;
+    for(;pre <= cur ; pre += sizeof(square)) {
+        fin.seekg(pre);
+        fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
+        for (int i = 0; i < tmp.length; i++) {
+            if (o < tmp.nodearray[i]) {
+                x = i;
+                flag = true;
+                break;
+            }
         }
     }
     if(!flag) x = tmp.length;
@@ -166,7 +178,9 @@ void nodelist::addnode(node &o) {
     fout.write(reinterpret_cast<char*>(&tmp),sizeof(square));
     fin.close();
     fout.close();
-    if(tmp.length >= square_size)split(cur);
+    if(tmp.length >= square_size){
+        split(cur);
+    }
 }
 
 
@@ -182,11 +196,16 @@ void nodelist::deletenode(node &o) {
     }
     int cur = 0;
     int next = nextsquare(0);
+    int pre = 0;
     while(next != -1){
         square tmp;
         fin.seekg(next);
         fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
-        if(o.key < tmp.nodearray[0].key)break;
+        if(strcmp(o.key,tmp.nodearray[0].key) < 0)break;
+        square a1;
+        fin.seekg(cur);
+        fin.read(reinterpret_cast<char*>(&a1),sizeof(square));
+        if(strcmp(o.key,a1.nodearray[0].key) >= 0)pre = cur;
         cur = next;
         next = nextsquare(cur);
     }
@@ -195,17 +214,40 @@ void nodelist::deletenode(node &o) {
     fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
     bool flag = false;
     int x;
-    for(int i = 0 ; i < tmp.length; i++)
-    {
-        if(strcmp(o.key,tmp.nodearray[i].key) == 0&& o.offset == tmp.nodearray[i].offset){
-            x = i;
-            flag = true;
-            break;
+    for(;pre <= cur;pre += sizeof(square)){
+        for (int i = 0; i < tmp.length; i++) {
+            if (strcmp(o.key, tmp.nodearray[i].key) == 0 && o.offset == tmp.nodearray[i].offset) {
+                x = i;
+                flag = true;
+                break;
+            }
         }
     }
     if(!flag){
         return;
     }
+//    int pos = -1;
+//    int len;
+//    square tempsquare;
+//    while (pos < 0 && (cur >= 0)) {
+//        fin.seekg(cur);
+//        fin.read(reinterpret_cast<char *>(&tempsquare), sizeof(square));
+//        node tempnode(o);
+//
+//        len = tempsquare.length;
+//        int equal_key_pos = lower_bound(tempsquare.nodearray, tempsquare.nodearray + len, tempnode) - tempsquare.nodearray;
+//
+//        for (int i = equal_key_pos; i < len; i++) {
+//            if (strcmp(tempsquare.nodearray[i].key, o.key) == 0 && tempsquare.nodearray[i].offset == getselect()) {
+//                if (tempsquare.nodearray[i].offset == o.offset) {
+//                    pos = i;
+//                    break;
+//                }
+//            }
+//        }
+//        if (pos < 0)cur = nextsquare(cur);
+//    }
+
     for(int i = x ; i <= tmp.length - 2; i++)
     {
         tmp.nodearray[i] = tmp.nodearray[i + 1];
@@ -240,23 +282,27 @@ void nodelist::findnode(const string & key_, vector<int>&possibileoffset){
     fin.open(filename,ios::in | ios :: binary);
     int cur = 0;
     int next = nextsquare(0);
+    int pre = 0;
     while(next >= 0){
         square tmp;
         fin.seekg(next);
         fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
         if(strcmp(key_.c_str(),tmp.nodearray[0].key) <= 0)break;
+        square a1;
+        fin.seekg(cur);
+        fin.read(reinterpret_cast<char*>(&a1),sizeof(square));
+        if(strcmp(key_.c_str(),tmp.nodearray[0].key) > 0)pre = cur;
         cur = next;
         next = nextsquare(cur);
     }
-    square tmp;
-    fin.seekg(cur);
-    fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
-    int x;
-    for(int i = 0 ; i < tmp.length; i++)
-    {
-        if(key_ == tmp.nodearray[i].key){
-            x = i;
-            possibileoffset.push_back(tmp.nodearray[i].offset);
+    for(;pre <= cur;pre+=sizeof(square)) {
+        square tmp;
+        fin.seekg(pre);
+        fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
+        for (int i = 0; i < tmp.length; i++) {
+            if (key_ == tmp.nodearray[i].key) {
+                possibileoffset.push_back(tmp.nodearray[i].offset);
+            }
         }
     }
 //    for(int i = 0 ; i < tmp.length ; i++)
@@ -267,28 +313,24 @@ void nodelist::findnode(const string & key_, vector<int>&possibileoffset){
 //            if(strcmp( key_.c_str(), temp) == 0)possibileoffset.push_back(tmp.nodearray[i].offset);
 //        }
 //    }
-   // bool flag = true;
-//    while (flag && (cur >= 0)) {
+//    bool flag = true;
+//    while (flag && (cur >= 0)) {//一个key在多个块，从》=的第一个开始遍历
 //        flag = false;
-//        square tempBlock;
+//        square tempsquare;
 //        fin.seekg(cur);
-//        fin.read(reinterpret_cast<char *>(&tempBlock), sizeof(square));
+//        fin.read(reinterpret_cast<char *>(&tempsquare), sizeof(square));
 //        node tempElement(-1, key_);
-//        int len = tempBlock.length;
-//        int pos = lower_bound(tempBlock.nodearray, tempBlock.nodearray + len, tempElement) - tempBlock.nodearray;
-//        for (int i = pos; i < len; i++) {
-//            if (strcmp(tempBlock.nodearray[i].key, key_.c_str()) < 0) break;
-//            if (strcmp(tempBlock.nodearray[i].key, key_.c_str()) == 0) {
-//                possibileoffset.push_back(tempBlock.nodearray[i].offset);
+//        int len = tempsquare.length;
+//        //int pos = lower_bound(tempsquare.nodearray, tempsquare.nodearray + len, tempElement) - tempsquare.nodearray;
+//        for (int i = 0; i < len; i++) {
+//            if (strcmp(tempsquare.nodearray[i].key, key_.c_str()) < 0) break;
+//            if (strcmp(tempsquare.nodearray[i].key, key_.c_str()) == 0) {
+//                possibileoffset.push_back(tempsquare.nodearray[i].offset);
 //                if (i == len - 1) {
 //                    flag = true;
 //                    cur = nextsquare(cur);
 //                }
 //            }
-//        }
-//        if (pos == len) {
-//            flag = true;
-//            cur = nextsquare(cur);
 //        }
 //    }
 //    if(possibileoffset.empty()){

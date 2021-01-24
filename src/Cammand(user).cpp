@@ -3,7 +3,6 @@
 //
 
 #include "Cammand(user).h"
-#include "Bookstore.h"
 #include <iomanip>
 #include <algorithm>
 #include <cstring>
@@ -12,6 +11,8 @@ nodelist USER_ID_LIST(USER_ID_LIST_FILE);
 nodelist ISBN_LIST(ISBN_FILE);
 nodelist AUTHOR_LIST(AUTHOR_FILE);
 nodelist NAME_LIST(NAME_FILE);
+stack<user>USERONLINE;
+
 
 user::user(const string &user_id_, const string &pass, const string &name_, int pri) {
     strcpy(user_id,user_id_.c_str());
@@ -20,7 +21,7 @@ user::user(const string &user_id_, const string &pass, const string &name_, int 
     priority = pri;
 }
 
-stack<user>USERONLINE;
+
 
 void login(const string &user_id_,string password ){
     if(strlen(password.c_str()) == 0){
@@ -200,7 +201,10 @@ void showfinance(){
     fin.seekg(0);
     totlemoney tmp;
     fin.read(reinterpret_cast<char*>(&tmp),sizeof(totlemoney));
-    cout<<"+"<<" "<<tmp.benefit<<" "<<"-"<<" "<<-tmp.expense<<endl;
+    cout<<"+"<<" ";
+    printf("%.2lf ",tmp.benefit);
+    cout<<"-"<<" ";
+    printf("%.2lf\n",-tmp.expense);
     fin.close();
 }
 
@@ -236,8 +240,8 @@ void showfinancetime(int times){
     }
     cout<<"+"<<" ";
     printf("%.2lf ",shouru);
-    cout<<"+"<<" ";
-    printf("%.2lf\n",zhichu);
+    cout<<"-"<<" ";
+    printf("%.2lf\n",-zhichu);
     fin.close();
 }
 
@@ -310,11 +314,11 @@ void modifyISBN(const string &key){
     vector<int>possibleoffset2;
     ISBN_LIST.findnode(key,possibleoffset2);
     if(!possibleoffset2.empty())throw("e");
-    ISBN_LIST.findnode(tmp.ISBN,possibleoffset);
-    if(!possibleoffset.empty()) {
+    //ISBN_LIST.findnode(tmp.ISBN,possibleoffset);
+    //if(!possibleoffset.empty()) {
         node a(offset, tmp.ISBN);
-        NAME_LIST.deletenode(a);
-    }
+        ISBN_LIST.deletenode(a);
+    //}
 //    if(!possibleoffset.empty()) {
 //        Book tmpt;
 //        fstream fout;
@@ -391,24 +395,6 @@ void modifyAUTHOR(const string &key){
 
 
 void modifyKEYWORD(const string &command){
-//    int offset = USERONLINE.top().select;
-//    fstream fin(BOOK_FILE,ios::in | ios :: out | ios ::binary);
-//    fin.seekg(offset);
-//    Book tmp;
-//    fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
-//    vector<int>possibleoffset;
-//    KEYWORD_LIST.findnode(tmp.key_word,possibleoffset);
-//    if(!possibleoffset.empty()) {
-//        node a(offset, tmp.key_word);
-//        KEYWORD_LIST.deletenode(a);
-//    }
-//    node b(offset,key);
-//    KEYWORD_LIST.addnode(b);//更新链表
-//    strcpy(tmp.key_word,key.c_str());
-//    fin.seekp(offset);
-//    fin.write(reinterpret_cast<char*>(&tmp),sizeof(Book));//更新文件
-//    fin.close();
-
     vector<string>oldkey;
     int offset = USERONLINE.top().select;
     fstream fin;
@@ -418,6 +404,7 @@ void modifyKEYWORD(const string &command){
     fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
     string key = tmp.key_word;
     splitkey(key,oldkey);
+    sort(oldkey.begin(),oldkey.end());
     if(!oldkey.empty()){
         for(auto & k : oldkey){
             node a1(offset,k);
@@ -426,6 +413,9 @@ void modifyKEYWORD(const string &command){
     }
     vector<string>keys;
     splitkey(command,keys);
+    for(int i = 1 ; i < keys.size() - 1;i++){
+        if(strcmp(keys[i].c_str(),keys[i + 1].c_str()) == 0)throw("e");
+    }
     for(auto & j : keys){
         node a2(offset,j);
         KEYWORD_LIST.addnode(a2);
@@ -521,6 +511,9 @@ void Run_Program(string &a){
         if(i >= len && strlen(user_id.c_str()) > 0 && strlen(user_id.c_str()) <= 30 && USERONLINE.top().priority >= 7){
             deleteaccount(user_id);
         }
+        else{
+            throw"er";
+        }
         return;
     }
     else if(type == "passwd"){
@@ -558,8 +551,16 @@ void Run_Program(string &a){
     else if(type == "import"){
         if(USERONLINE.empty())throw("e");
         string value1, value2; int quantity; double cost_price;
-        for (++i; i < len && a[i] != ' '; ++i) value1 += a[i];
-        for (++i; i < len && a[i] != ' '; ++i) value2 += a[i];
+        for (++i; i < len && a[i] != ' '; ++i) {
+            if(a[i] < '0' || a[i] > '9')throw"3";
+            value1 += a[i];
+        }
+        int cnt = 0;
+        for (++i; i < len && a[i] != ' '; ++i) {
+            if(a[i] == '.')cnt++;
+            if((a[i] != '.' &&(a[i] < '0' || a[i] > '9')) || cnt >= 2 )throw"3";
+            value2 += a[i];
+        }
         if (strlen(value1.c_str()) > 0 && strlen(value2.c_str()) > 0) {
             stringstream str1(value1), str2(value2);
             str1 >> quantity, str2 >> cost_price;
@@ -600,31 +601,6 @@ void Run_Program(string &a){
                     command = command.substr(1,strlen(command.c_str()) - 2);
                     modifyKEYWORD(command);
                     break;
-//                    vector<string>oldkey;
-//                    int offset = USERONLINE.top().select;
-//                    fstream fin;
-//                    fin.open(BOOK_FILE,ios::in | ios::out| ios::binary);
-//                    fin.seekg(offset);
-//                    Book tmp;
-//                    fin.read(reinterpret_cast<char*>(&tmp),sizeof(Book));
-//                    string key = tmp.key_word;
-//                    splitkey(key,oldkey);
-//                    if(!oldkey.empty()){
-//                        for(auto & k : oldkey){
-//                            node a1(offset,k);
-//                            KEYWORD_LIST.deletenode(a1);
-//                        }
-//                    }
-//                    vector<string>keys;
-//                    splitkey(command,keys);
-//                    for(auto & j : keys){
-//                        node a2(offset,j);
-//                        KEYWORD_LIST.addnode(a2);
-//                    }
-//                    strcpy(tmp.key_word,command.c_str());
-//                    fin.seekp(offset);
-//                    fin.write(reinterpret_cast<char*>(&tmp),sizeof(Book));
-//                    break;
                 }
                 case 'p':{
                     command = command.substr(7);
@@ -680,9 +656,6 @@ void Run_Program(string &a){
                             splitkey(command,key);
                             show(command, KEYWORD_LIST);
                             if(key.size() > 1 || key.empty())throw"ee";
-//                            for(auto &j : key){
-//                                show(j,KEYWORD_LIST);
-//                            }
                             return;
                         }
                         default:
@@ -726,7 +699,6 @@ void Run_Program(string &a){
                 return;
             }
         } else throw("error");
-        return;
     }
     else if(type == "report"){}
     else if(type == "log"){}
@@ -778,4 +750,10 @@ void splitkey(string str,vector<string>&a){
     stringstream s(str);
     string tmp;
     while(getline(s,tmp,'|'))a.push_back(tmp);
+}
+
+
+
+int getselect(){
+    return USERONLINE.top().select;
 }

@@ -43,6 +43,7 @@ public:
 void login(const string &user_id_,string password = "");
 
 
+
 void logout();
 
 
@@ -103,6 +104,7 @@ void splitkey(string str,vector<string>&a);
 
 void clear();
 
+int getselect();
 
 template <class T>
 T my_read(const string&  filename,int offset){
