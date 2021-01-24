@@ -134,20 +134,19 @@ void nodelist::addnode(node &o) {
     }
     int cur = 0;
     int next;
-    int pre = 0;
     fin.seekg(0);
     fin.read(reinterpret_cast<char *>(&next),sizeof(int));
     while(next != -1){
         square tmp ;
         fin.seekg(next);
         fin.read(reinterpret_cast<char *>(&tmp),sizeof(square));
-        if(o.key <= tmp.nodearray[0].key){
+        if(strcmp(o.key,tmp.nodearray[0].key) < 0){
             break;
         }
-        square a1;
-        fin.seekg(cur);
-        fin.read(reinterpret_cast<char*>(&a1),sizeof(square));
-        if(strcmp(o.key,tmp.nodearray[0].key) > 0)pre = cur;
+//        square a1;
+//        fin.seekg(cur);
+//        fin.read(reinterpret_cast<char*>(&a1),sizeof(square));
+//        if(strcmp(o.key,tmp.nodearray[0].key) > 0)pre = cur;
         cur = next;
         next = nextsquare(cur);
     }
@@ -156,15 +155,13 @@ void nodelist::addnode(node &o) {
     fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
     bool flag = false;
     int x;
-    for(;pre <= cur ; pre += sizeof(square)) {
-        fin.seekg(pre);
-        fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
-        for (int i = 0; i < tmp.length; i++) {
-            if (o < tmp.nodearray[i]) {
-                x = i;
-                flag = true;
-                break;
-            }
+    fin.seekg(cur);
+    fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
+    for (int i = 0; i < tmp.length; i++) {
+        if (o < tmp.nodearray[i]) {
+            x = i;
+            flag = true;
+            break;
         }
     }
     if(!flag) x = tmp.length;
@@ -214,7 +211,19 @@ void nodelist::deletenode(node &o) {
     fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
     bool flag = false;
     int x;
-    for(;pre <= cur;pre += sizeof(square)){
+//    for(;pre <= cur;pre += sizeof(square)){
+//        for (int i = 0; i < tmp.length; i++) {
+//            if (strcmp(o.key, tmp.nodearray[i].key) == 0 && o.offset == tmp.nodearray[i].offset) {
+//                x = i;
+//                flag = true;
+//                break;
+//            }
+//        }
+//    }
+    while(true){
+//        square tmp;
+//        fin.seekg(pre);
+//        fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
         for (int i = 0; i < tmp.length; i++) {
             if (strcmp(o.key, tmp.nodearray[i].key) == 0 && o.offset == tmp.nodearray[i].offset) {
                 x = i;
@@ -222,6 +231,8 @@ void nodelist::deletenode(node &o) {
                 break;
             }
         }
+        if(pre == next)break;
+        pre = nextsquare(pre);
     }
     if(!flag){
         return;
@@ -295,7 +306,17 @@ void nodelist::findnode(const string & key_, vector<int>&possibileoffset){
         cur = next;
         next = nextsquare(cur);
     }
-    for(;pre <= cur;pre+=sizeof(square)) {
+//    for(;pre <= cur;pre+=sizeof(square)) {
+//        square tmp;
+//        fin.seekg(pre);
+//        fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
+//        for (int i = 0; i < tmp.length; i++) {
+//            if (key_ == tmp.nodearray[i].key) {
+//                possibileoffset.push_back(tmp.nodearray[i].offset);
+//            }
+//        }
+//    }
+    while(true){
         square tmp;
         fin.seekg(pre);
         fin.read(reinterpret_cast<char*>(&tmp),sizeof(square));
@@ -304,6 +325,8 @@ void nodelist::findnode(const string & key_, vector<int>&possibileoffset){
                 possibileoffset.push_back(tmp.nodearray[i].offset);
             }
         }
+        if(pre == next)break;
+        pre = nextsquare(pre);
     }
 //    for(int i = 0 ; i < tmp.length ; i++)
 //    {

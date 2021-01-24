@@ -43,6 +43,20 @@ public:
 void login(const string &user_id_,string password = "");
 
 
+bool checkauthor(const string &a);
+
+bool checkname(const string & a);
+
+bool checkuser_id(const string &a);
+
+
+bool checkpasswd(const string &a);
+bool checkpasswd2(const string &a);
+
+bool checkeyword(const string&a);
+
+
+bool checkisbn(const string &a);
 
 void logout();
 

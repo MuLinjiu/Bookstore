@@ -6,11 +6,18 @@
 #include <iomanip>
 #include <algorithm>
 #include <cstring>
+
+
 nodelist KEYWORD_LIST(KEYWORD_FILE);
+
 nodelist USER_ID_LIST(USER_ID_LIST_FILE);
+
 nodelist ISBN_LIST(ISBN_FILE);
+
 nodelist AUTHOR_LIST(AUTHOR_FILE);
+
 nodelist NAME_LIST(NAME_FILE);
+
 stack<user>USERONLINE;
 
 
@@ -20,8 +27,6 @@ user::user(const string &user_id_, const string &pass, const string &name_, int 
     strcpy(name,name_.c_str());
     priority = pri;
 }
-
-
 
 void login(const string &user_id_,string password ){
     if(strlen(password.c_str()) == 0){
@@ -454,7 +459,7 @@ void Run_Program(string &a){
         for (++i; i < len && a[i] != ' '; ++i) user_id += a[i];
         for (++i; i < len && a[i] != ' '; ++i) passwd += a[i];
         for (; i < len && a[i] == ' '; ++i);
-        if(i >= len && strlen(user_id.c_str()) <= 30 &&  strlen(user_id.c_str()) > 0 && strlen(passwd.c_str()) <= 30 ){
+        if(i >= len && checkuser_id(user_id) && checkpasswd2(passwd) ){
             login(user_id,passwd);
             return;
         }else{
@@ -477,8 +482,7 @@ void Run_Program(string &a){
         ++i;
         for (++i; i < len && a[i] != ' '; ++i) name += a[i];
         for (; i < len && a[i] == ' '; ++i);
-        if(i >= len && strlen(user_id.c_str()) > 0 && strlen(passwd.c_str()) > 0 && strlen(name.c_str()) > 0 &&
-                strlen(user_id.c_str()) <= 30 && strlen(passwd.c_str()) <= 30 && strlen(name.c_str()) < 30 && pri - '0' < USERONLINE.top().priority)
+        if(i >= len && checkpasswd(passwd) && checkuser_id(user_id) &&checkname(name) && pri - '0' < USERONLINE.top().priority)
         {
             user tmp(user_id,passwd,name,pri-'0');
             addaccount(tmp);
@@ -492,8 +496,7 @@ void Run_Program(string &a){
         for (++i; i < len && a[i] != ' '; ++i) passwd += a[i];
         for (++i; i < len && a[i] != ' '; ++i) name += a[i];
         for (; i < len && a[i] == ' '; ++i);
-        if(i >= len && strlen(user_id.c_str()) > 0 && strlen(passwd.c_str()) > 0 && strlen(name.c_str()) > 0 &&
-           strlen(user_id.c_str()) <= 30 && strlen(passwd.c_str()) <= 30 && strlen(name.c_str()) < 30)
+        if(i >= len && checkpasswd(passwd) && checkuser_id(user_id) &&checkname(name) )
         {
             user tmp(user_id,passwd,name,1);
             register_(tmp);
@@ -508,7 +511,7 @@ void Run_Program(string &a){
         string user_id;
         for (++i; i < len && a[i] != ' '; ++i) user_id += a[i];
         for (; i < len && a[i] == ' '; ++i);
-        if(i >= len && strlen(user_id.c_str()) > 0 && strlen(user_id.c_str()) <= 30 && USERONLINE.top().priority >= 7){
+        if(i >= len && checkuser_id(user_id) && USERONLINE.top().priority >= 7){
             deleteaccount(user_id);
         }
         else{
@@ -526,10 +529,12 @@ void Run_Program(string &a){
         if(i >= len && strlen(user_id.c_str()) > 0 && strlen(oldpass.c_str()) > 0 && strlen(user_id.c_str()) <= 30 && strlen(oldpass.c_str()) <= 30 && strlen(newpass.c_str()) <= 30)
         {
             if(newpass.empty() && USERONLINE.top().priority == 7){
+                if(!checkuser_id(user_id)||!checkpasswd(oldpass))throw"e";
                 changepassword(user_id.c_str(),oldpass.c_str(),newpass.c_str());
                 return;
             }
             else if(USERONLINE.top().priority >= 1){
+                if(!checkpasswd(oldpass)||!checkpasswd(newpass)||!checkuser_id(user_id))throw"e";
                 changepassword(user_id.c_str(),newpass.c_str(),oldpass.c_str());
                 return;
             }else throw("error");
@@ -541,7 +546,7 @@ void Run_Program(string &a){
         string ISBN;
         for (++i; i < len && a[i] != ' '; ++i) ISBN += a[i];
         for (; i < len && a[i] == ' '; ++i);
-        if(i >= len && strlen(ISBN.c_str()) > 0 && strlen(ISBN.c_str()) <= 20){
+        if(i >= len && checkisbn(ISBN)){
             selectbook(ISBN);//函数内部判断是否足够权限
             return;
         }
@@ -573,7 +578,7 @@ void Run_Program(string &a){
         return;
     }
     else if(type == "modify"){
-        if(USERONLINE.top().select == -1)throw"o";
+        if(USERONLINE.top().select == -1 || USERONLINE.empty())throw"o";
         while(i < len){
             string command;
             for (++i; a[i] != ' ' && a[i] != '\0' && a[i] != '\n'; ++i) command += a[i];
@@ -581,24 +586,28 @@ void Run_Program(string &a){
                 case 'I':{
                     command = command.substr(6);
                     //command = command.substr(1,strlen(command.c_str()) - 2);
+                    if(!checkisbn(command))throw"e";
                     modifyISBN(command);
                     break;
                 }
                 case 'n':{
                     command = command.substr(6);
                     command = command.substr(1,strlen(command.c_str()) - 2);
+                    if(!checkname(command))throw("e");
                     modifyNAME(command);
                     break;
                 }
                 case 'a':{
                     command = command.substr(8);
                     command = command.substr(1,strlen(command.c_str()) - 2);
+                    if(!checkauthor(command))throw("e");
                     modifyAUTHOR(command);
                     break;
                 }
                 case 'k':{
                     command = command.substr(9);
                     command = command.substr(1,strlen(command.c_str()) - 2);
+                    if(!checkeyword(command))throw("e");
                     modifyKEYWORD(command);
                     break;
                 }
@@ -633,25 +642,28 @@ void Run_Program(string &a){
                     switch (command[1]) {
                         case 'I': {
                             command = command.substr(6);
+                            if(!checkisbn(command))throw"e";
                             show(command, ISBN_LIST);
                             return;
                         }
                         case 'n': {
                             command = command.substr(6);
                             command = command.substr(1,strlen(command.c_str()) - 2);
+                            if(!checkname(command))throw("e");
                             show(command, NAME_LIST);
                             return;
                         }
                         case 'a': {
                             command = command.substr(8);
                             command = command.substr(1,strlen(command.c_str()) - 2);
+                            if(!checkauthor(command))throw("e");
                             show(command, AUTHOR_LIST);
                             return;
                         }
                         case 'k': {
                             command = command.substr(9);
                             command = command.substr(1,strlen(command.c_str()) - 2);
-                            if(strlen(command.c_str()) > 60)throw("t");
+                            if(!checkeyword(command))throw("e");
                             vector<string>key;
                             splitkey(command,key);
                             show(command, KEYWORD_LIST);
@@ -693,7 +705,7 @@ void Run_Program(string &a){
         for (++i; i < len && a[i] != ' '; ++i) value += a[i];
         stringstream str(value); str >> quantity;
         for (; i < len && a[i] == ' '; ++i) ;
-        if (i >= len && strlen(value.c_str()) > 0 && strlen(ISBN.c_str()) > 0 && strlen(ISBN.c_str()) <= 20 && USERONLINE.top().priority >= 1) {
+        if (i >= len && strlen(value.c_str()) > 0 && checkisbn(ISBN) && USERONLINE.top().priority >= 1) {
             {
                 buy(ISBN,quantity);
                 return;
@@ -756,4 +768,65 @@ void splitkey(string str,vector<string>&a){
 
 int getselect(){
     return USERONLINE.top().select;
+}
+
+
+bool checkname(const string &a){
+    if(strlen(a.c_str()) > 60 || strlen(a.c_str()) == 0)return false;
+    for(int i = 0 ; i < strlen(a.c_str()) ; i++)
+    {
+        if(a[i] == '\"' || a[i] == ' ')return false;
+    }
+    return true;
+}
+
+bool checkauthor(const string & a){
+    if(strlen(a.c_str()) > 60|| strlen(a.c_str()) == 0)return false;
+    for(int i = 0 ; i < strlen(a.c_str()) ; i++)
+    {
+        if(a[i] == '\"')return false;
+    }
+    return true;
+}
+
+bool checkuser_id(const string &a){
+    if(strlen(a.c_str()) > 30|| strlen(a.c_str()) == 0)return false;
+    for(int i = 0 ;i < strlen(a.c_str());i++)
+    {
+        if(((a[i] < '0' || a[i] > '9') && ((a[i] < 'a' || a[i] > 'z') && (a[i] < 'A' || a[i] > 'Z')) && a[i] != '_')||a[i] == ' ')return false;
+    }
+    return true;
+}
+
+
+bool checkpasswd(const string &a){
+    if(strlen(a.c_str()) > 30|| strlen(a.c_str()) == 0)return false;
+    for(int i = 0 ;i < strlen(a.c_str());i++)
+    {
+        if(((a[i] < '0' || a[i] > '9') && ((a[i] < 'a' || a[i] > 'z') && (a[i] < 'A' || a[i] > 'Z')) && a[i] != '_')||a[i] == ' ')return false;
+    }
+    return true;
+}
+
+bool checkeyword(const string&a){
+    if(strlen(a.c_str()) > 60|| strlen(a.c_str()) == 0)return false;
+    for(int i = 0 ; i < strlen(a.c_str()) ;i++)
+    {
+        if(a[i] == '\"' || a[i] == ' ')return false;
+    }
+    return true;
+}
+
+
+bool checkisbn(const string &a){
+    if(strlen(a.c_str()) > 20|| strlen(a.c_str()) == 0)return false;
+    else return true;
+}
+bool checkpasswd2(const string &a){
+    if(strlen(a.c_str()) > 30)return false;
+    for(int i = 0 ;i < strlen(a.c_str());i++)
+    {
+        if(((a[i] < '0' || a[i] > '9') && ((a[i] < 'a' || a[i] > 'z') && (a[i] < 'A' || a[i] > 'Z')) && a[i] != '_')||a[i] == ' ')return false;
+    }
+    return true;
 }
