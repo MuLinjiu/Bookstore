@@ -9,14 +9,19 @@
 
 using namespace std;
 int main() {
+
     initialize();
+//    freopen("1.in","r",stdin);
+//    freopen("ans.txt","w",stdout);
     string command;
     while(getline(cin,command)){
+        //cout<<"#"<<" "<<command<<endl;
         try{
             Run_Program(command);
         }catch (...){
             cout<<"Invalid\n";
         }
     }
+
     return 0;
 }

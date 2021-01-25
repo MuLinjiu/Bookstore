@@ -30,8 +30,8 @@ bool Book::operator<(Book &a) {
 
 void Book::show() const {
     cout<<ISBN<<"\t"<<name<<"\t"<<author<<"\t"<<key_word<<"\t";
-    printf("%.2lf",price);
-    cout<<"\t"<<quantity<<endl;
+    printf("%.2lf\t%d\n",price,quantity);
+
 }
 
 transaction::transaction() = default;

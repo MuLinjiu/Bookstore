@@ -55,6 +55,7 @@ bool checkpasswd2(const string &a);
 
 bool checkeyword(const string&a);
 
+bool havekeyword(const string &a,const string & key);
 
 bool checkisbn(const string &a);
 

@@ -6,7 +6,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <cstring>
-
+#include <cmath>
 
 nodelist KEYWORD_LIST(KEYWORD_FILE);
 
@@ -91,7 +91,7 @@ void deleteaccount(const string & user_id){
 }
 
 void changepassword(const char* user_id,const char * newpas,const char* oldpas ){
-    if(strcmp(oldpas,newpas) == 0)throw"o";
+    //if(strcmp(oldpas,newpas) == 0)throw"o";
     vector<int>possibleoffset;
     USER_ID_LIST.findnode(user_id,possibleoffset);
     if(possibleoffset.empty())throw("cannot find the userid");
@@ -101,7 +101,7 @@ void changepassword(const char* user_id,const char * newpas,const char* oldpas )
             throw("wrong oldpassword");
         }
     }
-    if(strcmp(tmp.password,newpas) == 0)throw("o");
+    //if(strcmp(tmp.password,newpas) == 0)throw("o");
     strcpy(tmp.password,newpas);
     my_write<user>(USER,tmp,possibleoffset[0]);
 }
@@ -209,7 +209,7 @@ void showfinance(){
     cout<<"+"<<" ";
     printf("%.2lf ",tmp.benefit);
     cout<<"-"<<" ";
-    printf("%.2lf\n",-tmp.expense);
+    printf("%.2lf\n",abs(tmp.expense));
     fin.close();
 }
 
@@ -246,7 +246,7 @@ void showfinancetime(int times){
     cout<<"+"<<" ";
     printf("%.2lf ",shouru);
     cout<<"-"<<" ";
-    printf("%.2lf\n",-zhichu);
+    printf("%.2lf\n",abs(zhichu));
     fin.close();
 }
 
@@ -274,13 +274,45 @@ void show(const string &key,nodelist &a){
         return;
     }
     sort(bookstack.begin(),bookstack.end());
+    if(&a == &KEYWORD_LIST){
+        for(auto & it : bookstack) {
+            if (havekeyword(it.key_word, key))it.show();
+            else continue;
+        }
+        return;
+    }
+    if(&a == &NAME_LIST){
+        for(auto & it : bookstack) {
+            if (havekeyword(it.name, key))it.show();
+            else continue;
+        }
+        return;
+    }
+    if(&a == &AUTHOR_LIST){
+        for(auto & it : bookstack) {
+            if (havekeyword(it.author, key))it.show();
+            else continue;
+        }
+        return;
+    }
     for(auto & it : bookstack){
         it.show();
     }
 }
 
 
-
+bool havekeyword(const string &a,const string &key){
+    vector<string>k;
+    splitkey(a,k);
+    bool flag = false;
+    for(auto & it : k){
+        if(it == key){
+            flag = true;
+            break;
+        }
+    }
+    return flag;
+}
 
 void show(){
     fstream fin(BOOK_FILE,ios::in | ios :: out | ios ::binary);
@@ -578,7 +610,7 @@ void Run_Program(string &a){
         return;
     }
     else if(type == "modify"){
-        if(USERONLINE.top().select == -1 || USERONLINE.empty())throw"o";
+        if(USERONLINE.empty() || USERONLINE.top().select == -1 )throw"o";
         while(i < len){
             string command;
             for (++i; a[i] != ' ' && a[i] != '\0' && a[i] != '\n'; ++i) command += a[i];
@@ -666,8 +698,8 @@ void Run_Program(string &a){
                             if(!checkeyword(command))throw("e");
                             vector<string>key;
                             splitkey(command,key);
-                            show(command, KEYWORD_LIST);
                             if(key.size() > 1 || key.empty())throw"ee";
+                            show(command, KEYWORD_LIST);
                             return;
                         }
                         default:
